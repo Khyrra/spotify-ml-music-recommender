@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ML Algoritmalı Müzik Öneri Sistemi</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="orb a"></div>
+    <div class="orb b"></div>
+    <div class="orb c"></div>
+    <div class="noise"></div>
+  </div>
+
+  <div class="top">
+    <div class="brand">
+      <div class="logo">🎧</div>
+      <div>
+        <div class="t1">ML Algoritmalı Müzik Öneri Sistemi</div>
+        <div class="t2">TF‑IDF • KNN • Random Forest • Lineer Regresyon • SVD • Sinir Ağı</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="layout">
+      <aside class="bar">
+        <h2>Kontrol Paneli</h2>
+        <form method="POST" class="form">
+          <label>Şarkı ara</label>
+          <input name="song" value="{{query}}" placeholder="Örn: Believer, Ceza Suspus, Lose Yourself" required />
+
+          <label>Algoritma seç</label>
+          <select name="algo">
+            {% for key, label in algo_labels.items() %}
+              <option value="{{key}}" {% if algo==key %}selected{% endif %}>{{label}}</option>
+            {% endfor %}
+          </select>
+
+          <label>Kaç öneri?</label>
+          <select name="k">
+            {% for n in [3,5,8,10,12,15,20] %}
+              <option value="{{n}}" {% if k==n %}selected{% endif %}>{{n}} öneri</option>
+            {% endfor %}
+          </select>
+
+          <button type="submit" class="btn">ÖNER</button>
+        </form>
+
+        <div class="hint">
+          <div class="h">Sunum notu</div>
+          <p>
+            “Lineer Regresyon / Random Forest / Sinir Ağı” modelleri,
+            Spotify audio-features farklarından <b>benzerlik skoru</b> tahmin eder.
+            (Etiket olarak TF‑IDF benzerliği kullanılır.) Böylece aynı problemde farklı ML algoritmaları kıyaslanır.
+            Furkan Korunur
+            Anıl Şahin
+            Kerem Can Hayvacı
+          </p>
+        </div>
+      </aside>
+
+      <main class="main">
+        {% if error %}
+          <div class="alert">{{error}}</div>
+        {% endif %}
+        {% if warn %}
+          <div class="note">{{warn}}</div>
+        {% endif %}
+
+        {% if picked %}
+          <section class="section">
+            <h2>Seçilen şarkı (ilk eşleşme)</h2>
+            <div class="card picked">
+              <div class="row">
+                {% if picked.image %}<img class="cover" src="{{picked.image}}" alt="cover"/>{% endif %}
+                <div class="grow">
+                  <div class="name">{{picked.name}}</div>
+                  <div class="meta">{{picked.artists}} · {{picked.album}} · Popülerlik: {{picked.popularity}}/100</div>
+                  <div class="actions">
+                    <a class="chip" href="{{picked.spotify_url}}" target="_blank" rel="noopener">Spotify’da aç</a>
+                    {% if picked.preview_url %}
+                      <audio controls src="{{picked.preview_url}}"></audio>
+                    {% else %}
+                      <span class="muted">Preview yok (Spotify bazen vermiyor).</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        {% endif %}
+
+        {% if recs and recs|length > 0 %}
+          <section class="section">
+            <h2>Önerilen şarkılar</h2>
+            <div class="grid">
+              {% for t in recs %}
+                <div class="card">
+                  <div class="row">
+                    {% if t.image %}<img class="cover" src="{{t.image}}" alt="cover"/>{% endif %}
+                    <div class="grow">
+                      <div class="name">{{t.name}}</div>
+                      <div class="meta">{{t.artists}} · {{t.album}} · Popülerlik: {{t.popularity}}/100</div>
+                      <div class="actions">
+                        <a class="chip" href="{{t.spotify_url}}" target="_blank" rel="noopener">Spotify’da aç</a>
+                        {% if t.preview_url %}
+                          <audio controls src="{{t.preview_url}}"></audio>
+                        {% else %}
+                          <span class="muted">Preview yok.</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      </main>
+
+      <aside class="side">
+        <h2>Benzerlik Oranı Tablosu</h2>
+        <p class="muted small">Algoritma değiştikçe yüzdeler değişir. Ölçek: 0–100.</p>
+
+        {% if table and table|length>0 %}
+          <div class="table">
+            <div class="tr th">
+              <div>#</div><div>Şarkı</div><div>Oran</div>
+            </div>
+            {% for r in table %}
+              <div class="tr">
+                <div class="rk">{{r.rank}}</div>
+                <div class="tx">
+                  <div class="nm">{{r.name}}</div>
+                  <div class="ar">{{r.artists}}</div>
+                </div>
+                <div class="sc">
+                  <div class="barwrap">
+                    <div class="barin" style="width: {{r.score_pct}}%"></div>
+                  </div>
+                  <div class="pct">{{r.score_pct}}%</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="muted">Henüz sonuç yok. Soldan arayıp algoritma seç.</div>
+        {% endif %}
+
+        <div class="authors">
+          <div class="authors-title">Proje Ekibi</div>
+          <ul>
+            <li>Furkan Korunur</li>
+            <li>Anıl Şahin</li>
+            <li>Kerem Can Hayvacı</li>
+          </ul>
+        </div>
+        
+
+
+
+      </aside>
+    </div>
+
+    <footer class="foot">
+      <small>Canlı Spotify verisi. Preview bazı şarkılarda ülkeye/lisansa göre yoktur.</small>
+    </footer>
+  </div>
+</body>
+</html>
