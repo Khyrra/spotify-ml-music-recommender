@@ -137,11 +137,10 @@ http://127.0.0.1:5000
 
 ---
 
-## 👥 Proje Ekibi
+## 👥 Proje Sahibi
 
 - Furkan Korunur
-- Anıl Şahin
-- Kerem Can Hayvacı
+
 
 ---
 
